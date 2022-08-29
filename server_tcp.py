@@ -1,6 +1,8 @@
 # 소켓을 사용하기 위해서는 socket을 import해야 한다.
 import socket
 import threading
+from PIL import Image
+# import base64
 
 
 # binder함수는 서버에서 accept가 되면 생성되는 socket 인스턴스를 통해 client로 부터 데이터를 받으면 echo형태로 재송신하는 메소드이다.
@@ -12,16 +14,29 @@ def binder(client_socket, addr):
         # 만약 접속이 끊기게 된다면 except가 발생해서 접속이 끊기게 된다.
         while True:
             # socket의 recv함수는 연결된 소켓으로부터 데이터를 받을 대기하는 함수입니다. 최초 4바이트를 대기합니다.
-            data = client_socket.recv(4)
+            lengthBytes = client_socket.recv(4)
             # 최초 4바이트는 전송할 데이터의 크기이다. 그 크기는 big 엔디언으로 byte에서 int형식으로 변환한다.
             # C#의 BitConverter는 big엔디언으로 처리된다.
-            length = int.from_bytes(data, "big")
+            # length = int.from_bytes(data, "big")
+            # ??? little로 일단 옵니다. 왠지는 모릅니다.
+            length = int.from_bytes(lengthBytes, "little")
+            print("Receive Length : ", length)
+            #
             # 다시 데이터를 수신한다.
-            data = client_socket.recv(length)
+            dataBytes = b''
+            dataBytes = client_socket.recv(length)
+            # print("data Received : ", lengthBytes)
             # 수신된 데이터를 str형식으로 decode한다.
-            msg = data.decode()
+            # msg = data.decode()
+            # utf-8을 쓰지 않습니다.
+            # bytes자체로 png를 읽어 디스플레이해봅시다.
+            img = Image.open(dataBytes)
+            print(img)
+            img.show()
+
+
             # 수신된 메시지를 콘솔에 출력한다.
-            print('Received from', addr, msg)
+            # print('Received from', addr, msg)
 
             # # 수신된 메시지 앞에 「echo:」 라는 메시지를 붙힌다.
             # msg = "echo : " + msg;
